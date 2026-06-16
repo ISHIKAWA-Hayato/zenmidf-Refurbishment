@@ -142,14 +142,15 @@ def main() -> int:
         print(str(exc), file=sys.stderr)
         return 1
 
+    if not patch_text:
+        print("No favicon href changes needed for the supported patterns.", file=sys.stderr)
+        return 0
+
     if args.output:
         out_path = Path(args.output).resolve()
         out_path.write_text(patch_text, encoding="utf-8")
     else:
         print(patch_text, end="")
-
-    if not patch_text:
-        print("No favicon href changes needed for the supported patterns.", file=sys.stderr)
 
     return 0
 
