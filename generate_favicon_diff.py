@@ -15,7 +15,7 @@ ICON_REL_RE = re.compile(
 HREF_RE = re.compile(r"\bhref\s*=\s*(['\"])(.*?)\1", re.IGNORECASE)
 
 
-def detect_expected_href(html_root: Path, html_file: Path) -> str | None:
+def calculate_expected_favicon_href(html_root: Path, html_file: Path) -> str | None:
     rel = html_file.relative_to(html_root)
     parts = rel.parts
 
@@ -65,26 +65,26 @@ def update_icon_href(content: str, expected_href: str) -> tuple[str, bool]:
     return updated, changed
 
 
-def collect_target_html(html_root: Path) -> list[Path]:
+def collect_target_html_files(html_root: Path) -> list[Path]:
     html_files: list[Path] = []
 
     for file in sorted(html_root.rglob("*.html")):
-        if detect_expected_href(html_root, file) is not None:
+        if calculate_expected_favicon_href(html_root, file) is not None:
             html_files.append(file)
 
     return html_files
 
 
-def generate_patch_and_optionally_apply(repo_root: Path, apply_changes: bool) -> str:
+def generate_favicon_patch(repo_root: Path, apply_changes: bool) -> str:
     html_root = repo_root / "html"
     if not html_root.is_dir():
         raise FileNotFoundError(f"html directory not found: {html_root}")
 
     patch_chunks: list[str] = []
-    targets = collect_target_html(html_root)
+    targets = collect_target_html_files(html_root)
 
     for file in targets:
-        expected_href = detect_expected_href(html_root, file)
+        expected_href = calculate_expected_favicon_href(html_root, file)
         if expected_href is None:
             continue
 
@@ -137,7 +137,7 @@ def main() -> int:
     repo_root = Path(args.repo_root).resolve()
 
     try:
-        patch_text = generate_patch_and_optionally_apply(repo_root, apply_changes=args.apply)
+        patch_text = generate_favicon_patch(repo_root, apply_changes=args.apply)
     except FileNotFoundError as exc:
         print(str(exc), file=sys.stderr)
         return 1
