@@ -75,7 +75,7 @@ def collect_target_html(html_root: Path) -> list[Path]:
     return html_files
 
 
-def build_patch(repo_root: Path, apply_changes: bool) -> str:
+def generate_patch_and_optionally_apply(repo_root: Path, apply_changes: bool) -> str:
     html_root = repo_root / "html"
     if not html_root.is_dir():
         raise FileNotFoundError(f"html directory not found: {html_root}")
@@ -137,13 +137,13 @@ def main() -> int:
     repo_root = Path(args.repo_root).resolve()
 
     try:
-        patch_text = build_patch(repo_root, apply_changes=args.apply)
+        patch_text = generate_patch_and_optionally_apply(repo_root, apply_changes=args.apply)
     except FileNotFoundError as exc:
         print(str(exc), file=sys.stderr)
         return 1
 
     if not patch_text:
-        print("No favicon href changes needed for the supported patterns.", file=sys.stderr)
+        print("No favicon href changes needed for the supported patterns.")
         return 0
 
     if args.output:
